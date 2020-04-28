@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: tezos-config
+  namespace: "tqtezos"
 data:
   parameters.json: |
     {
@@ -49,50 +50,32 @@ data:
       "delay_per_missing_endorsement": "1",
       "baking_reward_per_endorsement": [ "200000" ]
     }
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tezos-baker-deployment
-  labels:
-    app: tezos
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: tezos
-      category: baker
-  template:
-    metadata:
-      labels:
-        app: tezos
-    spec:
-      containers:
-      - name: tezos-node
-        image: 358459329979.dkr.ecr.us-east-1.amazonaws.com/ubuntu-tezos
-        imagePullPolicy: Always
-        command: ["
-        ports:
-        - containerPort: 8732
-        - containerPort: 8733
-      - name: tezos-baker
-        image: 358459329979.dkr.ecr.us-east-1.amazonaws.com/ubuntu-tezos
-        command: ["base-dir/tezos-baker-006-PsCARTHA", "-A", "localhost", "-P", "8733", "-d", "/base-dir/client", "run", "with", "local", "node", "/base-dir/node", "baker"]
-}
-
-        imagePullPolicy: Always
-      - name: tezos-endorser
-        image: 358459329979.dkr.ecr.us-east-1.amazonaws.com/ubuntu-tezos
-        imagePullPolicy: Always
-        command: [""base-dir/tezos-endorser-006-PsCARTHA"" -A "localhost" -P "8733" -d "/base-dir/client", "run", "baker" ]
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: tezos-rpc
-spec:
-  selector:
-    app: tezos
-  ports:
-    - protocol: TCP
-      port: 8733
+  nodeconfig.json: |
+    {
+      "data-dir": "/var/tezos/node",
+      "rpc": {
+        "listen-addrs": [
+          ":8733"
+        ]
+      },
+      "p2p": {
+        "bootstrap-peers": [
+        ],
+        "listen-addr": "[::]:8732"
+      },
+      "network": {
+        "genesis": {
+          "timestamp": "2019-11-21T17:43:32Z",
+          "block": "BLockGenesisGenesisGenesisGenesisGenesisd1f7bcGMoXy",
+          "protocol": "PtBMwNZT94N7gXKw4i273CKcSaBrrBnqnt3RATExNKr9KNX2USV"
+        },
+        "genesis_parameters": {
+          "values": {
+            "genesis_pubkey": "edpkuRBhj4R8YfdnaZAP51BxaLayYL2HoqWv1RyuY6CigD75YKWYeU"
+            }
+        },
+        "chain_name": "457a4d8a-aa4a-417b-a1a8-b8a7bd324666",
+        "sandboxed_chain_name": "SANDBOXED_TEZOS",
+        "default_bootstrap_peers": []
+      }
+    }
